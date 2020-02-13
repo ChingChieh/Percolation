@@ -9,6 +9,7 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 public class Percolation {
 
     private final WeightedQuickUnionUF uf;
+    private final WeightedQuickUnionUF uf_full;
     private boolean[] status;
     private final int size; // store the n * n value
     private final int num;  // store the n value
@@ -21,6 +22,7 @@ public class Percolation {
         num = n;
         check(n);
         uf = new WeightedQuickUnionUF(size);
+        uf_full = new WeightedQuickUnionUF(size);
         status = new boolean[size];
         for (int i = 0; i < size; ++i) {
             status[i] = false;
@@ -39,8 +41,9 @@ public class Percolation {
         if (index <= num) {
             status[0] = true;
             uf.union(0, index);
+            uf_full.union(0, index);
         }
-        else if (index >= size - num - 1) {
+        if (index >= size - num - 1) {
             status[size - 1] = true;
             uf.union(size - 1, index);
         }
@@ -49,15 +52,19 @@ public class Percolation {
             num_OpenSite++;
             if (row + 1 <= num && status[index + num]) {
                 uf.union(index, index + num);
+                uf_full.union(index, index + num);
             }
             if (row - 1 > 0 && status[index - num]) {
                 uf.union(index, index - num);
+                uf_full.union(index, index - num);
             }
             if (col + 1 <= num && status[index + 1]) {
                 uf.union(index, index + 1);
+                uf_full.union(index, index + 1);
             }
             if (col - 1 > 0 && status[index - 1]) {
                 uf.union(index, index - 1);
+                uf_full.union(index, index - 1);
             }
         }
     }
@@ -75,7 +82,7 @@ public class Percolation {
         check(col);
         if (status[0]) {
             int index = xyTo1D(row, col);
-            return uf.connected(index, 0);
+            return uf_full.connected(index, 0);
         }
         else {
             return false;
