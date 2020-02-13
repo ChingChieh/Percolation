@@ -13,12 +13,11 @@ public class Percolation {
     private final int size; // store the n * n value
     private final int num;  // store the n value
     private int num_OpenSite = 0;
-    private boolean first_row = false;
 
 
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
-        size = n * n;
+        size = n * n + 2;
         num = n;
         check(n);
         uf = new WeightedQuickUnionUF(size);
@@ -26,6 +25,10 @@ public class Percolation {
         for (int i = 0; i < size; ++i) {
             status[i] = false;
         }
+        // for (int i = 1; i <= n; ++i) {
+        //     uf.union(0, i);
+        //     uf.union(size - 1, size - 1 - i);
+        // }
     }
 
     // opens the site (row, col) if it is not open already
@@ -33,8 +36,13 @@ public class Percolation {
         check(row);
         check(col);
         int index = xyTo1D(row, col);
-        if (!first_row && index <= num) {
-            first_row = true;
+        if (index <= num) {
+            status[0] = true;
+            uf.union(0, index);
+        }
+        else if (index >= size - num - 1) {
+            status[size - 1] = true;
+            uf.union(size - 1, index);
         }
         if (!status[index]) {
             status[index] = true;
@@ -65,16 +73,13 @@ public class Percolation {
     public boolean isFull(int row, int col) {
         check(row);
         check(col);
-        boolean full = false;
-        int index = xyTo1D(row, col);
-        for (int i = 0; i < num; ++i) {
-            if (status[i] && status[index] && (numberOfOpenSites() >= row) && uf
-                    .connected(i, index)) {
-                full = true;
-                break;
-            }
+        if (status[0]) {
+            int index = xyTo1D(row, col);
+            return uf.connected(index, 0);
         }
-        return full;
+        else {
+            return false;
+        }
     }
 
     // returns the number of open sites
@@ -84,14 +89,19 @@ public class Percolation {
 
     // does the system percolate?
     public boolean percolates() {
-        boolean per = false;
-        for (int j = 1; j <= num; ++j) {
-            if (first_row && (numberOfOpenSites() >= num) && isOpen(num, j) && isFull(num, j)) {
-                per = true;
-                break;
-            }
+        // boolean per = false;
+        // for (int j = 1; j <= num; ++j) {
+        //     if ((numberOfOpenSites() >= num) && isOpen(num, j) && isFull(num, j)) {
+        //         per = true;
+        //         break;
+        //     }
+        // }
+        if (status[0] && status[size - 1]) {
+            return uf.connected(0, size - 1);
         }
-        return per;
+        else {
+            return false;
+        }
     }
 
     private void check(int i) {
@@ -99,7 +109,7 @@ public class Percolation {
     }
 
     private int xyTo1D(int row, int col) {
-        return ((row - 1) * num + (col - 1));
+        return ((row - 1) * num + col);
     }
 
     // test client (optional)
